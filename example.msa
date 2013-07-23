@@ -1,0 +1,73 @@
+#This is a comment - HackitUp Format v1.00
+#Format supports ints base16 (eg 0x15AABB20), string literals
+#(eg 'Foo') and raw byte strings (eg '\xEB\x64\x90\x90\x90\x55\xAC')
+#Format: [name] | operation | startaddr | arg
+#name: friendly name
+#operation: WR, NOP, RETN,STR JACK (more will be added later)
+#Note: STR is like WR but it adds a null terminator.
+#startaddr: File offset of mod start (ADDRESS - BASE_ADDR)
+#arg: varies (WR is the raw data, NOP = number of 0x90)
+
+#Modifications (comment lines to disable them):
+#--BadMatch fix for HW Palette issue (non-nvidia cards)
+nvidia_fix | WR | 0x6C9BC | 0x280A
+#--HDD Check 1 Fix (Skips title screen HDD Check)
+hdd_check_1 | NOP | 0x6175F | 0x2BA
+#--HDD Check 2 Fix (Skips results screen HDD Check)
+hdd_check_2 | NOP | 0x41A3F | 0x2BA
+#--Dongle Check 1 (Test vector at startup)
+dongle_check_1 | NOP | 0xBD27 | 0xD
+#--Dongle Check 2 (Test vectors at Operator Menu)
+dongle_check_2 | WR | 0x5D3DC | 0x74
+#--IOSLEEP Trap Fix (Infinite loop waiting for dongle to return value)
+iosleep_trap_fix | NOP | 0x2A893 | 0x2
+#--Fix mission.txt trying to be read from root to executable dir.
+mission_fix | STR | 0xAF718 | 'mission.txt'
+#--Cosmetic: Change window Title to 'Hack it Up'
+window_title | STR | 0xA9A62 | 'HACK IT UP: NX2'
+#--Set Machine Data Directory to ./SAVE
+settings_fix1 | STR | 0xA9DF4 | './SAVE/MRANK.DAT'
+settings_fix2 | STR | 0xAB895 | './SAVE/RANK.DAT'
+settings_fix3 | STR | 0xABBB8 | './SAVE/PIUNX2.INI'
+#--Set Script Directory to ./LUA
+script_fix1 | STR | 0xA9741 | './LUA/SFX_GLOBAL.LUA'
+script_fix2 | STR | 0xA9949 | './LUA/?.lua;./LUA/?;./LUA/UI/?.lua;./LUA/UI/?'
+script_fix3 | STR | 0xA9AED | './LUA/?.lua;./LUA/?'
+script_fix4 | STR | 0xABBCD | './LUA/KEY.LUA'
+script_fix5 | STR | 0xAE0E0 | './LUA/UI/SFX_SELECT.LUA'
+script_fix6 | STR | 0xAFC8D | './LUA/UI/DANCEGRADE.LUA'
+script_fix7 | STR | 0xAFCA7 | './LUA/UI/SFX_DANCEGRADE.LUA'
+script_fix8 | STR | 0xAFECF | './LUA/UI/SFX_NEXTSTAGE.LUA'
+script_fix9 | STR | 0xB0043 | './LUA/UI/SFX_NAMEINPUT.LUA'
+script_fix10 | STR | 0xB0F0F | './LUA/UI/SFX_TRAINING.LUA'
+script_fix11 | STR | 0xB1806 | './LUA/UI/SFX_WORLDMAX.LUA'
+script_fix12 | STR | 0xB229F | './LUA/SETUP_KR.LUA'
+script_fix13 | STR | 0xB22B4 | './LUA/SETUP_EN.LUA'
+script_fix14 | STR | 0xB296C | './LUA/UI/SFX_STATION.LUA'
+script_fix15 | STR | 0xB2BB5 | './LUA/UI/SFX_TITLE.LUA'
+script_fix16 | STR | 0xB3378 | './LUA/UI/WORLDGRADE.LUA'
+#--Show hidden songs without USB Profile
+show_hidden1 | NOP | 0x1C991 | 0x6
+show_hidden2 | NOP | 0x1C99B | 0x6
+show_hidden3 | NOP | 0x1C9A7 | 0x6
+#--Remove Korean Region Restriction for "Tell Me"
+enable_tellme1 | NOP | 0x1C91A | 0xD
+enable_tellme2 | WR | 0x1C92F | 0x85
+enable_tellme3 | WR | 0x1D232 | 0x75
+enable_tellme4 | WR | 0x4D8AF | 0x84
+#--Enable use of any flash drive
+enable_anyusb1 | NOP | 0x1F941 | 0x11
+enable_anyusb2 | NOP | 0x20095 | 0x6
+#--Fix for flash drive detection for kernels without USBFS
+usbfs_fix1 | STR | 0xABD70 | '/sys/bus/usb/devices/%d-%d:1.0/host*/target*:0:0/*:0:0:0/block/sd*'
+#--Coin Rip Stuff
+#coin_rip1 | NOP | 0xC348 | 0x1
+#coin_rip2 | NOP | 0xBB61 | 0x1 
+#coin_rip3 | NOP | 0xBB4B | 0x1
+#coin_rip4 | NOP | 0x5F30 | 0xCA
+#coin_rip5 | WR | 0x1C46F | 0x0
+#coin_rip6 | WR | 0x1C476 | 0x0
+#--Cosmetic: Set Window Size
+#win_w | WR | 0xCB1E | 0x320
+#win_h | WR | 0xCB03 | 0x258
+#--TEST
