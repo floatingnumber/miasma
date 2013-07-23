@@ -1,0 +1,14 @@
+#!wing
+#!version=4.0
+##################################################################
+# Wing IDE project file                                          #
+##################################################################
+[project attributes]
+proj.file-list = [loc('example.msa'),
+                  loc('globals.py'),
+                  loc('miasma.py'),
+                  loc('miasmadefs.py'),
+                  loc('patchreader.py'),
+                  loc('README.md'),
+                  loc('target.py')]
+proj.file-type = 'shared'
