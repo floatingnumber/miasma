@@ -30,8 +30,21 @@ class Target(object):
 	def __init__(self,path,args):
 		self.path = path
 		self.args = args
-		self.libc = CDLL('libc.so.6')
-		self.child = self.libc.fork()
+		if(platform != 'nt'):
+		     self.libc = CDLL('libc.so.6')
+		     self.child = self.libc.fork()
+	       else:
+		    self.kernel32 = windll.kernel32
+		    self.child = kernel32.CreateProcessA("%s %s" %(self.path,args),
+									None,
+									None,
+									None,
+									None,
+									creation_flags,
+									None,
+									None,
+									byref(startupinfo),
+									byref(process_information))
 		(base,bin) = os.path.split(path)
 		os.chdir(base)
 		self.mods = ""
