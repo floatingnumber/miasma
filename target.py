@@ -31,11 +31,11 @@ class Target(object):
 		self.path = path
 		self.args = args
 		if(platform != 'nt'):
-		     self.libc = CDLL('libc.so.6')
-		     self.child = self.libc.fork()
-	       else:
-		    self.kernel32 = windll.kernel32
-		    self.child = kernel32.CreateProcessA("%s %s" %(self.path,args),
+			self.libc = CDLL('libc.so.6')
+			self.child = self.libc.fork()
+		else:
+			self.kernel32 = windll.kernel32
+			self.child = kernel32.CreateProcessA("%s %s" %(self.path,args),
 									None,
 									None,
 									None,
@@ -89,12 +89,19 @@ class Target(object):
 	def writeMem(self,offset,data):
 		#print("DEBUG: WriteMem: %04X : %04X" % (offset, data))
 		self.libc.ptrace(PTRACE_POKEDATA,self.child,ELF_BASE+offset,data)
-
+	
+	def dump_binary(self):
+		outfile = open("outbin","wb")
+		offset = 0
+		while(1):
+			val = self.readMem(offset) & 0xFFFFFFFF
+			outfile.write(struct.pack("<I",val))
+			offset +=4
 	
 	def init_mods(self):
 		for offset in self.mods.mem_mods:
 			#Loading Logic
-
+			
 			bytes = array('B', self.mods.mem_mods[offset][1])
 			if(len(self.mods.mem_mods[offset][1]) == 4):
 				val = struct.unpack('<I', bytes)[0]
@@ -116,29 +123,29 @@ class Target(object):
 				while(count):
 					#I'm so ashamed...
 					if(count < 4):
+						finval = 0
 						blocksize = count
-						data = 0
-						val = 0
-						
+						#We know there will at least be SOME overflow...
+						data = bytearray(struct.pack("<I",self.readMem(curr_offset) & 0xFFFFFFFF))
+						print(curr_offset)
+						print(blocksize)
 						for i in range(0,blocksize):
-							val = val << 8
-							val += bytes[:blocksize][i]
-
-						if(val <= 0xFF):							
-							data = self.readMem(curr_offset) & 0xFFFFFF00
-						elif(val <= 0xFFFF):
-							data = self.readMem(curr_offset) & 0xFFFF0000
-						elif(val <= 0xFFFFFF):
-
-							data = self.readMem(curr_offset) & 0xFF000000							
+							finval = finval << 8
+							finval += bytes[i]
 						
-						data+=val
-						self.writeMem(curr_offset,data)		
+						for i in range(blocksize,4):
+							finval = finval << 8
+							finval += data[i]
+						
+						#Final Endian Swap
+						finval = struct.unpack("<I",struct.pack(">I",finval))[0]
+						print("%04X" % finval)
+						self.writeMem(curr_offset,finval)		
 						
 					else:
 						blocksize = 4
-
 						data = struct.unpack('<I',bytes[:blocksize])[0]
+
 						self.writeMem(curr_offset,data)
 					
 					bytes = bytes[blocksize:]
@@ -152,3 +159,4 @@ class Target(object):
 				pass
 		if(DEBUG):
 			print("DEBUG: Binary Prepatching Completed!")
+		#self.dump_binary()# Debugging

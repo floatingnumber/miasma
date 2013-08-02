@@ -40,6 +40,9 @@ class Patchreader(object):
 			
 			if(operation == 'NOP'):
 				self.mem_mods[addr] = [mod_name,bytearray(b'\x90' * int(arg,16))]
+			
+			if(operation == 'NULL'):
+				self.mem_mods[addr] = [mod_name,bytearray(b'\x00' * int(arg,16))]
 				
 			if(operation == 'WR'):
 				if(arg[:2] == "0x"):
