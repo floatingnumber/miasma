@@ -1,4 +1,4 @@
-import os
+import os,platform
 from array import array
 from miasmadefs import *
 from patchreader import * 
@@ -30,8 +30,12 @@ class Target(object):
 	def __init__(self,path,args):
 		self.path = path
 		self.args = args
-		if(platform != 'nt'):
+		if(opsystem != 'nt'):
 			self.libc = CDLL('libc.so.6')
+			if(platform.machine() == 'x86_64'):
+				print("64 bit OS Detected")
+				self.libc = CDLL('/usr/lib32/libc.so.6')
+				
 			self.child = self.libc.fork()
 		else:
 			self.kernel32 = windll.kernel32
@@ -57,26 +61,26 @@ class Target(object):
 			self.libc.wait(None)
 			self.init_mods()
 			
-			self.libc.ptrace(PTRACE_POKEDATA,self.child,0xA7ED5A0,640)
+			#self.libc.ptrace(PTRACE_POKEDATA,self.child,0xA7ED5A0,640)
 			
 			self.libc.ptrace(PTRACE_CONT,self.child,None,None)
 			if(DEBUG):
 				print("DEBUG: Binary Executed!")
 
-			status = 0
-			regs = user_regs_struct()
-			self.libc.wait(None)
-			self.libc.ptrace(PTRACE_GETREGSET,self.child,None, byref(regs))
-			print("EIP: %04X" % regs.eip)
+			#status = 0
+			#regs = user_regs_struct()
+			#self.libc.wait(None)
+			#self.libc.ptrace(PTRACE_GETREGSET,self.child,None, byref(regs))
+			#print("EIP: %04X" % regs.eip)
 			#if(status != 0):
-			self.libc.ptrace(PTRACE_POKEDATA,self.child,0x8070EB1,0xCC)
-			self.libc.ptrace(PTRACE_POKEDATA,self.child,0xA7ED5A0,320)
-			self.libc.ptrace(PTRACE_POKEDATA,self.child,0xA7ED5A4,240)
-			print(self.libc.ptrace(PTRACE_PEEKDATA,self.child,0xA7ED5A0,None))
+			#self.libc.ptrace(PTRACE_POKEDATA,self.child,0x8070EB1,0xCC)
+			#self.libc.ptrace(PTRACE_POKEDATA,self.child,0xA7ED5A0,320)
+			#self.libc.ptrace(PTRACE_POKEDATA,self.child,0xA7ED5A4,240)
+			#print(self.libc.ptrace(PTRACE_PEEKDATA,self.child,0xA7ED5A0,None))
 			
 			#print("0x%0x,0x%0x,0x%0x,0x%0x" % (regs.contents.eax,regs.contents.ebx,regs.contents.ecx,regs.contents.edx))
-			self.libc.ptrace(PTRACE_POKEDATA,self.child,0x8070EB1,0xFDADB6E8)
-			self.libc.ptrace(PTRACE_CONT,self.child,None,None)	
+			#self.libc.ptrace(PTRACE_POKEDATA,self.child,0x8070EB1,0xFDADB6E8)
+			#self.libc.ptrace(PTRACE_CONT,self.child,None,None)	
 					
 			#self.libc.ptrace(PTRACE_SETOPTIONS, self.child,None,PTRACE_O_TRACEEXIT);
 			
@@ -99,7 +103,7 @@ class Target(object):
 			offset +=4
 	
 	def init_mods(self):
-		for offset in self.mods.mem_mods:
+		for offset in sorted(self.mods.mem_mods.iterkeys()):
 			#Loading Logic
 			
 			bytes = array('B', self.mods.mem_mods[offset][1])
@@ -127,8 +131,8 @@ class Target(object):
 						blocksize = count
 						#We know there will at least be SOME overflow...
 						data = bytearray(struct.pack("<I",self.readMem(curr_offset) & 0xFFFFFFFF))
-						print(curr_offset)
-						print(blocksize)
+						#print(curr_offset)
+						#print(blocksize)
 						for i in range(0,blocksize):
 							finval = finval << 8
 							finval += bytes[i]
@@ -139,7 +143,7 @@ class Target(object):
 						
 						#Final Endian Swap
 						finval = struct.unpack("<I",struct.pack(">I",finval))[0]
-						print("%04X" % finval)
+						#print("%04X" % finval)
 						self.writeMem(curr_offset,finval)		
 						
 					else:

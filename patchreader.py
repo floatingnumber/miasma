@@ -38,6 +38,13 @@ class Patchreader(object):
 			#Strip quotes out of string args
 			arg = arg.replace("'","")
 			
+			if(operation == 'FILE'):
+				if(os.path.exists(arg)):
+					print("Loading Patch File")
+					inpfile = open(arg,"rb")
+					self.mem_mods[addr] = [mod_name,bytearray(inpfile.read())]
+					inpfile.close()
+			
 			if(operation == 'NOP'):
 				self.mem_mods[addr] = [mod_name,bytearray(b'\x90' * int(arg,16))]
 			
@@ -55,6 +62,7 @@ class Patchreader(object):
 			if(operation == 'STR'):
 				arg += '\x00'
 				self.mem_mods[addr] = [mod_name,bytearray(arg)]
+		
 #Testing Code
 if __name__ == '__main__':
 	patches = Patchreader('piu.msa')
