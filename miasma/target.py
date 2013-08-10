@@ -1,9 +1,9 @@
 import os,platform
 from array import array
-from miasmadefs import *
-from patchreader import * 
+from miasma.miasmadefs import *
+from miasma.patchreader import * 
+from miasma.globals import *
 from ctypes import *
-from globals import *
 
 class user_regs_struct(Structure):
      _fields_ = [
@@ -30,7 +30,7 @@ class Target(object):
 	def __init__(self,path,args):
 		self.path = path
 		self.args = args
-		if(opsystem != 'nt'):
+		if(os.name != 'nt'):
 			self.libc = CDLL('libc.so.6')
 			if(platform.machine() == 'x86_64'):
 				print("64 bit OS Detected")

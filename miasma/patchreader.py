@@ -1,5 +1,5 @@
 import os,struct
-from globals import *
+from miasma.globals import *
 from array import array
 
 class Patchreader(object):
